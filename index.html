@@ -17,7 +17,7 @@
             <label for="initialBalance">Initial Balance:</label>
             <input type="number" id="initialBalance" min="1" step="1" required>
             <br>
-            <button type="button" onclick="createAccount()">Create Account</button>
+            <button type="button" onclick="currentAccount.create()">Create Account</button>
         </form>
     </div>
 
@@ -29,41 +29,57 @@
         <form id="transactionForm">
             <label for="transactionAmount">Transaction Amount:</label>
             <input type="number" id="transactionAmount" min="1" step="1">
-            <button type="button" onclick="deposit()">Deposit</button>
-            <button type="button" onclick="withdraw()">Withdraw</button>
-            <button type="button" onclick="deleteAccount()">Delete Account</button>
+            <button type="button" onclick="currentAccount.deposit()">Deposit</button>
+            <button type="button" onclick="currentAccount.withdraw()">Withdraw</button>
+            <button type="button" onclick="currentAccount.delete()">Delete Account</button>
         </form>
     </div>
 
     <script>
         class BankAccount {
-            constructor(accountHolder, balance) {
+            constructor() {
+                this.accountHolder = '';
+                this.balance = 0;
                 this.accountNumber = this.generateAccountNumber();
-                this.accountHolder = accountHolder;
-                this.balance = balance;
             }
 
             generateAccountNumber() {
                 return Math.floor(100000 + Math.random() * 900000).toString();
             }
 
-            deposit(amount) {
-                if (amount > 0) {
-                    this.balance += amount;
-                    alert(`Deposited $${amount} into account ${this.accountNumber}`);
-                    updateAccountInfo();
-                    resetTransactionForm();
+            create() {
+                this.accountHolder = document.getElementById('accountHolder').value;
+                const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+
+                if (this.accountHolder && initialBalance) {
+                    this.balance = initialBalance;
+                    this.updateAccountInfo();
+                    document.getElementById('accountInfo').style.display = 'block';
+                    document.getElementById('createAccountSection').style.display = 'none';
+                } else {
+                    alert('Please fill in all fields to create an account.');
+                }
+            }
+
+            deposit() {
+                const transactionAmount = parseFloat(document.getElementById('transactionAmount').value);
+                if (transactionAmount > 0) {
+                    this.balance += transactionAmount;
+                    alert(`Deposited $${transactionAmount} into account ${this.accountNumber}`);
+                    this.updateAccountInfo();
+                    this.resetTransactionForm();
                 } else {
                     alert('Invalid deposit amount');
                 }
             }
 
-            withdraw(amount) {
-                if (amount > 0 && amount <= this.balance) {
-                    this.balance -= amount;
-                    alert(`Withdrawn $${amount} from account ${this.accountNumber}`);
-                    updateAccountInfo();
-                    resetTransactionForm();
+            withdraw() {
+                const transactionAmount = parseFloat(document.getElementById('transactionAmount').value);
+                if (transactionAmount > 0 && transactionAmount <= this.balance) {
+                    this.balance -= transactionAmount;
+                    alert(`Withdrawn $${transactionAmount} from account ${this.accountNumber}`);
+                    this.updateAccountInfo();
+                    this.resetTransactionForm();
                 } else {
                     alert('Invalid withdrawal amount or insufficient balance');
                 }
@@ -71,66 +87,26 @@
 
             delete() {
                 if (confirm('Are you sure you want to delete this account?')) {
-                    currentAccount = undefined;
+                    this.accountHolder = '';
+                    this.balance = 0;
+                    this.accountNumber = this.generateAccountNumber();
                     document.getElementById('accountInfo').style.display = 'none';
                     document.getElementById('createAccountSection').style.display = 'block';
                 }
             }
 
-            checkBalance() {
-                return this.balance;
+            updateAccountInfo() {
+                document.getElementById('accountNumberDisplay').textContent = this.accountNumber;
+                document.getElementById('accountHolderDisplay').textContent = this.accountHolder;
+                document.getElementById('balanceDisplay').textContent = this.balance;
+            }
+
+            resetTransactionForm() {
+                document.getElementById('transactionAmount').value = '';
             }
         }
 
-        let currentAccount;
-
-        function createAccount() {
-            const accountHolder = document.getElementById('accountHolder').value;
-            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
-
-            if (accountHolder && initialBalance) {
-                currentAccount = new BankAccount(accountHolder, initialBalance);
-                document.getElementById('accountNumberDisplay').textContent = currentAccount.accountNumber;
-                document.getElementById('accountHolderDisplay').textContent = currentAccount.accountHolder;
-                document.getElementById('balanceDisplay').textContent = currentAccount.balance;
-                document.getElementById('accountInfo').style.display = 'block';
-                document.getElementById('createAccountSection').style.display = 'none';
-            } else {
-                alert('Please fill in all fields to create an account.');
-            }
-        }
-
-        function deposit() {
-            const transactionAmount = parseFloat(document.getElementById('transactionAmount').value);
-            if (transactionAmount) {
-                currentAccount.deposit(transactionAmount);
-            } else {
-                alert('Invalid transaction amount');
-            }
-        }
-
-        function withdraw() {
-            const transactionAmount = parseFloat(document.getElementById('transactionAmount').value);
-            if (transactionAmount) {
-                currentAccount.withdraw(transactionAmount);
-            } else {
-                alert('Invalid transaction amount');
-            }
-        }
-
-        function deleteAccount() {
-            currentAccount.delete();
-        }
-
-        function updateAccountInfo() {
-            document.getElementById('accountNumberDisplay').textContent = currentAccount.accountNumber;
-            document.getElementById('accountHolderDisplay').textContent = currentAccount.accountHolder;
-            document.getElementById('balanceDisplay').textContent = currentAccount.balance;
-        }
-
-        function resetTransactionForm() {
-            document.getElementById('transactionAmount').value = '';
-        }
+        const currentAccount = new BankAccount();
     </script>
 </body>
 </html>
